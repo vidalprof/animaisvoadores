@@ -7,89 +7,251 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Fredoka+One&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* CSS completo e sem alterações da versão anterior */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Fredoka+One&display=swap');
+        :root {
+            --cor-fundo: #f0f7fa; --cor-principal: #0081a7; --cor-secundaria: #00afb9;
+            --cor-destaque: #fdfcdc; --cor-texto: #032a3b; --cor-sombra: rgba(0, 0, 0, 0.1);
+            --cor-acerto: #2a9d8f; --cor-erro: #e76f51; --cor-selecao: #fca311;
+        }
+        body {
+            font-family: 'Poppins', sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto);
+            text-align: center; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; -webkit-user-select: none; user-select: none;
+        }
+        .tela { display: none; background-color: #fff; padding: 30px 40px; border-radius: 25px; box-shadow: 0 15px 40px var(--cor-sombra); width: 95%; max-width: 950px; border: none; }
+        .tela.ativa { display: block; animation: zoomIn 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .titulo-principal { font-family: 'Fredoka One', cursive; font-size: 2.8em; color: var(--cor-principal); margin-bottom: 10px; }
+        .titulo-tela { font-family: 'Fredoka One', cursive; font-size: 2.2em; color: var(--cor-principal); }
+        input[type="text"] { width: 80%; padding: 15px; margin: 20px 0; border-radius: 15px; border: 2px solid #ccc; font-size: 1em; text-align: center; transition: all 0.3s; }
+        button { background-color: var(--cor-secundaria); color: white; font-family: 'Poppins', sans-serif; font-weight: 700; border: none; padding: 15px 35px; border-radius: 50px; font-size: 1.1em; cursor: pointer; transition: all 0.3s; margin: 10px 5px; box-shadow: 0 5px 15px rgba(0, 175, 185, 0.3); }
+        button:hover { background-color: var(--cor-principal); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 129, 167, 0.4); }
+        button:disabled { background-color: #ccc !important; cursor: not-allowed !important; box-shadow: none !important; transform: none !important; }
+        .img-inicio { width: 90%; max-width: 350px; height: auto; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 8px 25px var(--cor-sombra); }
+        .escondido { display: none !important; }
+        .galeria-container { display: flex; gap: 25px; margin-top: 20px; }
+        #grid-animais { width: 35%; display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; padding: 10px; background-color: #f7f9fa; border-radius: 15px; }
+        .botao-animal { width: 100%; text-align: left; background-color: #fff; color: var(--cor-texto); font-size: 1em; padding: 15px; border: 2px solid #eee; border-radius: 10px; box-shadow: none; }
+        .botao-animal.ativo, .botao-animal:hover { color: #fff; background-color: var(--cor-secundaria); border-color: var(--cor-principal); transform: translateX(5px); }
+        #ficha-display { width: 65%; background: #fff; border: 2px solid #eee; border-radius: 20px; padding: 25px; min-height: 60vh; transition: all 0.5s; }
+        #ficha-placeholder { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: #aaa; text-align: center; }
+        .emoji-placeholder { font-size: 4em; animation: bounce 2s infinite; }
+        @keyframes bounce { 40% { transform: translateY(-30px); } 60% { transform: translateY(-15px); } }
+        .ficha-animal { display: none; width: 100%; height: 100%; gap: 20px; }
+        .ficha-animal.ativa { display: flex; animation: fadeIn 0.5s; }
+        .ficha-imagem-container { flex: 0 0 220px; width: 220px; }
+        .ficha-imagem { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; box-shadow: 0 5px 15px var(--cor-sombra); }
+        .ficha-info { flex: 1; display: flex; flex-direction: column; max-height: 55vh; padding-left: 20px; text-align: left; }
+        .ficha-info h3 { font-size: 1.8em; margin-top: 0; padding-bottom: 10px; border-bottom: 3px solid; display: flex; align-items: center; justify-content: space-between; }
+        .info-conteudo { overflow-y: auto; padding-right: 15px; }
+        .info-item { font-size: 0.95em; line-height: 1.6; margin-bottom: 12px; }
+        .curiosidade { background-color: var(--cor-destaque); border-left: 5px solid; padding: 12px; border-radius: 8px; margin-top: auto; font-size: 0.9em; }
+        .botao-som { font-size: 0.9em; padding: 8px 15px; border-radius: 10px; background-color: #ffc107; box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3); }
+        #ficha-display.tema-aves { border-color: #4ecdc4; } .tema-aves .ficha-info h3, .tema-aves .curiosidade { border-color: #4ecdc4; }
+        #ficha-display.tema-insetos { border-color: #ff6b6b; } .tema-insetos .ficha-info h3, .tema-insetos .curiosidade { border-color: #ff6b6b; }
+        #ficha-display.tema-mamiferos { border-color: #5d5f7f; } .tema-mamiferos .ficha-info h3, .tema-mamiferos .curiosidade { border-color: #5d5f7f; }
+        #memoria-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; max-width: 800px; margin: 20px auto; perspective: 1000px; }
+        .memoria-card { width: 140px; height: 140px; position: relative; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.6s; }
+        .memoria-card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-frente, .card-verso { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; box-shadow: 0 5px 15px var(--cor-sombra); display: flex; justify-content: center; align-items: center; text-align: center; padding: 10px; box-sizing: border-box; }
+        .card-verso { background: linear-gradient(135deg, var(--cor-secundaria), var(--cor-principal)); font-family: 'Fredoka One', cursive; font-size: 5em; color: rgba(255, 255, 255, 0.5); }
+        .card-frente { background-color: #f7f9fa; transform: rotateY(180deg); font-family: 'Fredoka One', cursive; font-size: 1.4em; color: var(--cor-texto); }
+        .card-frente img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+        .memoria-card.matched { cursor: default; animation: match-pulse 0.5s ease-in-out; }
+        .memoria-card.matched .card-frente { border: 4px solid var(--cor-acerto); }
+        @keyframes match-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        #mensagem-memoria { margin-top: 20px; animation: fadeIn 1s; }
+        #mensagem-memoria h3 { font-size: 1.8em; color: var(--cor-acerto); }
+        #caca-palavras-container { display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-top: 20px; }
+        #grid-caca-palavras { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; background-color: #f0f7fa; padding: 15px; border-radius: 15px; }
+        .grid-cell { width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; font-family: 'Fredoka One', cursive; font-size: 1.4em; background-color: #fff; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .grid-cell.selecionado { background-color: var(--cor-selecao); color: white; transform: scale(1.1); }
+        .grid-cell.correto { color: white; }
+        #lista-palavras-container { width: 200px; text-align: left; }
+        #lista-palavras { list-style: none; padding: 0; }
+        #lista-palavras li { font-size: 1.2em; padding: 8px; margin-bottom: 5px; border-radius: 8px; transition: all 0.4s; }
+        #lista-palavras li.palavra-encontrada { text-decoration: line-through; color: #fff; transform: translateX(10px); }
+        .cor-0 { background-color: #ef476f; } .cor-1 { background-color: #ffd166; } .cor-2 { background-color: #06d6a0; } .cor-3 { background-color: #118ab2; } .cor-4 { background-color: #073b4c; }
+        .cor-5 { background-color: #e07a5f; } .cor-6 { background-color: #81b29a; } .cor-7 { background-color: #f2cc8f; } .cor-8 { background-color: #585123; } .cor-9 { background-color: #a44a3f; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .modal-overlay:not(.escondido) { opacity: 1; pointer-events: all; }
+        .modal-box { background-color: white; padding: 40px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: scale(0.8); transition: transform 0.3s ease; }
+        .modal-overlay:not(.escondido) .modal-box { transform: scale(1); }
+        .modal-emoji { font-size: 5em; display: block; margin-bottom: 15px; animation: wobble 1.5s; }
+        .modal-emoji-quiz { font-size: 5em; display: block; margin-bottom: 15px; animation: tada 1s; }
+        @keyframes tada { from { transform: scale3d(1, 1, 1); } 10%, 20% { transform: scale3d(0.9, 0.9, 0.9) rotate3d(0, 0, 1, -3deg); } 30%, 50%, 70%, 90% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg); } 40%, 60%, 80% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg); } to { transform: scale3d(1, 1, 1); } }
+        #quiz-progresso { font-size: 1.2em; font-weight: bold; color: var(--cor-principal); margin-bottom: 20px; }
+        #quiz-pergunta-container { background-color: #f7f9fa; border: 2px solid #eee; padding: 30px; border-radius: 20px; min-height: 35vh; }
+        #quiz-pergunta { font-size: 1.5em; margin-top: 0; }
+        #quiz-opcoes { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .quiz-opcao { display: block; background-color: #fff; border: 2px solid #ddd; padding: 15px; border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: left; }
+        .quiz-opcao:hover { border-color: var(--cor-secundaria); background-color: #f0f7fa; }
+        .quiz-opcao.selecionada { border-color: var(--cor-principal); background-color: #e0f2f1; font-weight: bold; }
+        #quiz-navegacao { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+        #relatorio-conteudo { border: none; padding: 20px; }
+        #pontuacao-detalhada p { margin: 5px 0; font-size: 1.1em; }
+        #respostas-detalhadas { margin-top: 20px; text-align: left; max-height: 30vh; overflow-y: auto; padding: 10px; border-top: 2px solid #b2dfdb; }
+        .item-resposta { padding: 10px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid; }
+        .item-resposta.correta { background-color: #E8F5E9; border-left-color: #4CAF50; }
+        .item-resposta.errada { background-color: #FFEBEE; border-left-color: #F44336; }
+        .container-nota { position: relative; }
+        #maos-aplaudindo { display: inline-block; }
+        #maos-aplaudindo.animar { animation: aplaudir 0.7s ease-in-out infinite; }
+        @keyframes aplaudir { 50% { transform: scale(1.2); } }
+        #confetti-container { position: absolute; top: 50%; left: 50%; pointer-events: none; }
+        .confete { position: absolute; width: 8px; height: 15px; opacity: 0; animation: explosao-confete 1.5s ease-out forwards; }
+        @keyframes explosao-confete { 100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; } }
+        #nota-final { font-size: 2.5em; color: var(--cor-principal); }
+    </style>
 </head>
 <body>
     <audio id="player-audio"></audio>
+    <audio id="player-efeitos"></audio>
+    <div id="tela-inicio" class="tela ativa"> <img src="imagens/inicial_animais.png" alt="Animais voadores" class="img-inicio"> <h1 class="titulo-principal">Exploradores dos Céus</h1> <p>Olá! Prepare-se para uma nova aventura com os animais voadores.</p> <label for="nome-aluno">Digite seu nome para começar:</label> <input type="text" id="nome-aluno" placeholder="Seu nome aqui"> <button id="btn-comecar">Começar a Exploração</button> </div>
+    <div id="tela-galeria" class="tela"> <h2 class="titulo-tela">Galeria dos Animais Voadores</h2> <p>Clique no nome de um animal para ver sua ficha e ouvir as curiosidades!</p> <div class="galeria-container"> <div id="grid-animais"></div> <div id="ficha-display"> <div id="ficha-placeholder"><span class="emoji-placeholder">👈</span><h3>Escolha um animal na lista!</h3></div> </div> </div> <button onclick="mostrarTela('tela-memoria')">Próximo Desafio: Jogo da Memória!</button> </div>
+    <div id="tela-memoria" class="tela"> <h2 class="titulo-tela">Desafio da Memória!</h2> <p>Encontre os 5 pares de cartas (imagem e nome correspondente).</p> <div id="memoria-board"></div> <div id="mensagem-memoria" class="escondido"> <h3>Parabéns, você tem uma memória de águia!</h3> <button onclick="mostrarTela('tela-caca-palavras')">Ir para o Caça-Palavras!</button> </div> </div>
+    <div id="tela-caca-palavras" class="tela"> <h2 class="titulo-tela">Desafio Caça-Palavras!</h2> <p>Encontre as 10 palavras escondidas. Clique na primeira letra e arraste até a última!</p> <div id="caca-palavras-container"> <div id="grid-caca-palavras"></div> <div id="lista-palavras-container"> <h3>Palavras:</h3> <ul id="lista-palavras"></ul> </div> </div> </div>
+    <div id="tela-quiz" class="tela"> <h2 class="titulo-tela">Desafio Final! 🧐</h2> <div id="quiz-progresso"></div> <div id="quiz-pergunta-container"> <h3 id="quiz-pergunta"></h3> <div id="quiz-opcoes"></div> </div> <div id="quiz-navegacao"> <button id="btn-quiz-anterior" onclick="mudarPergunta(-1)">⬅️ Anterior</button> <button id="btn-quiz-proximo" onclick="mudarPergunta(1)">Próximo ➡️</button> </div> </div>
+    <div id="tela-relatorio" class="tela"> <div id="relatorio-conteudo"> <h2 class="titulo-tela">Relatório de Desempenho <span id="maos-aplaudindo"></span></h2> <h3><span class="nome-placeholder"></span></h3> <div class="container-nota"><h3 id="nota-final"></h3><div id="confetti-container"></div></div> <div id="pontuacao-detalhada"></div> <div id="resumo-feedback"></div> <div id="respostas-detalhadas"></div> </div> <button id="btn-pdf" onclick="salvarPDF()">Salvar Relatório em PDF</button> <button onclick="window.location.reload()">Jogar Novamente</button> </div>
+    <div id="modal-caca-palavras" class="modal-overlay escondido"> <div class="modal-box"> <span class="modal-emoji">🏆</span> <h2>Parabéns!</h2> <p>Você encontrou todas as palavras escondidas e ganhou seus primeiros pontos!</p> <button onclick="fecharModalCacaPalavras()">Continuar para o Quiz Final!</button> </div> </div>
+    <div id="modal-quiz-finalizado" class="modal-overlay escondido"> <div class="modal-box"> <span class="modal-emoji-quiz">🎉</span> <h2>Missão Cumprida!</h2> <p>Você finalizou todos os desafios, <span class="nome-placeholder"></span>! Você é um verdadeiro Explorador(a) dos Céus!</p> <button onclick="fecharModalQuiz()">Ver meu Relatório Detalhado</button> </div> </div>
 
-    <div id="tela-inicio" class="tela ativa">
-        <img src="imagens/inicial_animais.png" alt="Animais voadores" class="img-inicio">
-        <h1 class="titulo-principal">Exploradores dos Céus</h1>
-        <p>Olá! Prepare-se para uma nova aventura com os animais voadores.</p>
-        <label for="nome-aluno">Digite seu nome para começar:</label>
-        <input type="text" id="nome-aluno" placeholder="Seu nome aqui">
-        <button id="btn-comecar">Começar a Exploração</button>
-    </div>
+    <script>
+        // --- BANCO DE DADOS COMPLETO DOS ANIMAIS ---
+        const animais = [
+            { id: 'arara_azul', nome: 'Arara-azul', tema: 'tema-aves', img: 'arara_azul.png', habitat: 'Florestas e áreas abertas do Pantanal e Cerrado.', alimentacao: 'Frutas, sementes e castanhas (como o licuri).', habitos: 'Diurna, costuma voar em bandos e é muito barulhenta.', curiosidade: 'É a maior arara do mundo e está ameaçada de extinção.' },
+            { id: 'beija_flor', nome: 'Beija-flor', tema: 'tema-aves', img: 'beija_flor.png', habitat: 'Jardins, praças e florestas das Américas.', alimentacao: 'Néctar de flores e pequenos insetos.', habitos: 'Diurno; bate as asas muito rápido e pode ficar parado no ar.', curiosidade: 'Ajuda a polinizar plantas ao levar pólen de flor em flor.' },
+            { id: 'coruja', nome: 'Coruja (Tyto alba)', tema: 'tema-aves', img: 'coruja.png', habitat: 'Campos e áreas rurais; também perto de cidades.', alimentacao: 'Roedores, pequenos mamíferos e insetos.', habitos: 'Principalmente noturna, voo silencioso para caçar.', curiosidade: 'Suas penas especiais reduzem o ruído do voo.' },
+            { id: 'aguia_harpia', nome: 'Águia-harpia', tema: 'tema-aves', img: 'aguia_harpia.png', habitat: 'Florestas tropicais da América, como a Amazônia.', alimentacao: 'Ave de rapina: caça mamíferos e outras aves.', habitos: 'Diurna; voa alto e observa do topo das árvores.', curiosidade: 'Tem garras muito fortes, entre as maiores entre as aves.' },
+            { id: 'borboleta', nome: 'Borboleta', tema: 'tema-insetos', img: 'borboleta.png', habitat: 'Jardins, parques e florestas.', alimentacao: 'Néctar das flores (na fase adulta).', habitos: 'Ativa durante o dia; passa pela metamorfose.', curiosidade: 'Seu ciclo de vida: ovo → lagarta → pupa → adulto.' },
+            { id: 'morcego_frugivoro', nome: 'Morcego frugívoro', tema: 'tema-mamiferos', img: 'morcego_frugivoro.png', habitat: 'Cavernas, ocos de árvores e telhados.', alimentacao: 'Frutas e néctar (há espécies que comem insetos).', habitos: 'Noturno; usa a ecolocalização para se orientar.', curiosidade: 'É o único mamífero capaz de voar ativamente.' },
+            { id: 'andorinha', nome: 'Andorinha-das-chaminés', tema: 'tema-aves', img: 'andorinha.png', habitat: 'Áreas abertas, fazendas, vilas e cidades.', alimentacao: 'Insetos capturados em voo.', habitos: 'Diurna e migratória; voa em grupos e faz ninhos em construções.', curiosidade: 'Suas asas longas e cauda em forma de “V” ajudam em manobras rápidas.' },
+            { id: 'tucano', nome: 'Tucano-toco', tema: 'tema-aves', img: 'tucano.png', habitat: 'Bordas de florestas e áreas abertas da América do Sul.', alimentacao: 'Frutas, ovos e pequenos animais.', habitos: 'Diurno; o bico grande ajuda a alcançar frutos e a regular a temperatura.', curiosidade: 'Apesar do bico enorme, é leve por dentro (cheio de “cavidades”).' },
+            { id: 'gaivota', nome: 'Gaivota', tema: 'tema-aves', img: 'gaivota.png', habitat: 'Costas, praias, ilhas e portos.', alimentacao: 'Peixes, restos de comida e outros animais pequenos.', habitos: 'Diurna; plana sobre o mar e é muito oportunista.', curiosidade: 'É comum em diversas cidades litorâneas do Brasil.' },
+            { id: 'abelha', nome: 'Abelha', tema: 'tema-insetos', img: 'abelha.png', habitat: 'Colmeias em troncos, cavidades ou caixas de apicultura.', alimentacao: 'Néctar e pólen das flores.', habitos: 'Diurna e social; usa “danças” para indicar fontes de alimento.', curiosidade: 'É importante polinizadora para muitas plantas e alimentos.' },
+            { id: 'libelula', nome: 'Libélula', tema: 'tema-insetos', img: 'libelula.png', habitat: 'Locais próximos a lagos, rios e brejos.', alimentacao: 'Insetos (como mosquitos), que captura em pleno voo.', habitos: 'Diurna; excelente voadora. As larvas vivem na água.', curiosidade: 'Tem olhos grandes que enxergam quase em todas as direções.' },
+            { id: 'pomba', nome: 'Pomba-doméstica', tema: 'tema-aves', img: 'pomba.png', habitat: 'Cidades, praças e telhados.', alimentacao: 'Sementes e restos de alimento humano.', habitos: 'Diurna; vive em grupos e constrói ninhos em prédios.', curiosidade: 'Tem ótima orientação e retorna ao ninho mesmo a longas distâncias.' },
+            { id: 'garca', nome: 'Garça-branca-grande', tema: 'tema-aves', img: 'garca.png', habitat: 'Manguezais, lagoas, banhados e margens de rios.', alimentacao: 'Peixes, anfíbios e pequenos invertebrados.', habitos: 'Fica parada e “fisga” a presa rapidamente com o bico.', curiosidade: 'Suas penas brancas ajudam na camuflagem em ambientes alagados.' },
+            { id: 'gaviao', nome: 'Gavião-carijó', tema: 'tema-aves', img: 'gaviao.png', habitat: 'Áreas urbanas e rurais, parques e campos.', alimentacao: 'Pequenos mamíferos, aves e répteis.', habitos: 'Diurno; frequentemente visto pousado em postes e árvores.', curiosidade: 'É um dos gaviões mais comuns em cidades brasileiras.' },
+            { id: 'falcao', nome: 'Falcão-peregrino', tema: 'tema-aves', img: 'falcao.png', habitat: 'Falésias, montanhas e prédios altos nas cidades.', alimentacao: 'Principalmente outras aves, capturadas em voo.', habitos: 'Diurno; famoso por mergulhos muito rápidos para caçar.', curiosidade: 'É um dos animais mais velozes do planeta em voo em mergulho.' }
+        ];
+        const quizPerguntas = [
+            { pergunta: '🤔 1. O que o bico enorme do Tucano-toco ajuda a fazer, além de pegar comida?', opcoes: [{ texto: 'Cantar', valor: 'a' }, { texto: 'Regular a temperatura', valor: 'b' }, { texto: 'Dormir', valor: 'c' }], respostaCorreta: 'b', explicacao: 'O bico do tucano, apesar de grande, é leve e ajuda a regular a temperatura do corpo dele.', respostaUsuario: null },
+            { pergunta: '🤔 2. Qual animal é considerado um dos mais velozes do planeta em um voo de mergulho?', opcoes: [{ texto: 'Andorinha-das-chaminés', valor: 'a' }, { texto: 'Águia-harpia', valor: 'b' }, { texto: 'Falcão-peregrino', valor: 'c' }], respostaCorreta: 'c', explicacao: 'O Falcão-peregrino é famoso por seus mergulhos em altíssima velocidade para caçar.', respostaUsuario: null },
+            { pergunta: '🤔 3. O que o Morcego frugívoro come?', opcoes: [{ texto: 'Apenas insetos', valor: 'a' }, { texto: 'Frutas e néctar', valor: 'b' }, { texto: 'Pequenos roedores', valor: 'c' }], respostaCorreta: 'b', explicacao: 'A ficha diz que os morcegos frugívoros comem frutas e néctar.', respostaUsuario: null },
+            { pergunta: '🤔 4. Como as Abelhas mostram para as outras onde encontrar comida?', opcoes: [{ texto: 'Com "danças"', valor: 'a' }, { texto: 'Com gritos altos', valor: 'b' }, { texto: 'Desenhando no chão', valor: 'c' }], respostaCorreta: 'a', explicacao: 'As abelhas são muito sociais e usam "danças" para comunicar onde há flores com néctar.', respostaUsuario: null },
+            { pergunta: '🤔 5. Qual animal tem penas especiais que reduzem o barulho do voo?', opcoes: [{ texto: 'Pomba-doméstica', valor: 'a' }, { texto: 'Coruja', valor: 'b' }, { texto: 'Garça-branca-grande', valor: 'c' }], respostaCorreta: 'b', explicacao: 'As penas especiais da Coruja diminuem o som do bater de asas, tornando seu voo silencioso.', respostaUsuario: null },
+            { pergunta: '🤔 6. Onde vive a larva da Libélula antes de ela poder voar?', opcoes: [{ texto: 'Na terra', valor: 'a' }, { texto: 'Dentro de árvores', valor: 'b' }, { texto: 'Na água', valor: 'c' }], respostaCorreta: 'c', explicacao: 'Antes de se tornar uma voadora adulta, a larva da libélula vive na água de lagos e rios.', respostaUsuario: null },
+            { pergunta: '🤔 7. Qual animal tem uma cauda em forma de "V" que ajuda em manobras rápidas?', opcoes: [{ texto: 'Gavião-carijó', valor: 'a' }, { texto: 'Andorinha-das-chaminés', valor: 'b' }, { texto: 'Tucano-toco', valor: 'c' }], respostaCorreta: 'b', explicacao: 'A Andorinha-das-chaminés tem uma cauda em "V" que funciona como um leme, ajudando em manobras.', respostaUsuario: null },
+            { pergunta: '🤔 8. O que torna a Águia-harpia uma caçadora tão poderosa?', opcoes: [{ texto: 'Seu canto bonito', valor: 'a' }, { texto: 'Suas garras muito fortes', valor: 'b' }, { texto: 'Sua velocidade em terra', valor: 'c' }], respostaCorreta: 'b', explicacao: 'A Águia-harpia é uma ave de rapina poderosa por causa de suas garras enormes e fortes.', respostaUsuario: null },
+            { pergunta: '🤔 9. Além do néctar, o que mais o Beija-flor come?', opcoes: [{ texto: 'Pequenos insetos', valor: 'a' }, { texto: 'Sementes', valor: 'b' }, { texto: 'Frutas', valor: 'c' }], respostaCorreta: 'a', explicacao: 'Além do néctar, o Beija-flor também caça pequenos insetos para conseguir proteínas.', respostaUsuario: null },
+            { pergunta: '🤔 10. Qual animal é a maior arara do mundo e está ameaçado de extinção?', opcoes: [{ texto: 'Tucano-toco', valor: 'a' }, { texto: 'Arara-azul', valor: 'b' }, { texto: 'Águia-harpia', valor: 'c' }], respostaCorreta: 'b', explicacao: 'A Arara-azul é a maior arara do mundo e, infelizmente, está ameaçada de extinção.', respostaUsuario: null }
+        ];
+        
+        // --- VARIÁVEIS GLOBAIS ---
+        let nomeAluno = "";
+        let quizResultados = [];
+        const playerAudio = document.getElementById('player-audio');
+        const playerEfeitos = document.getElementById('player-efeitos');
+        let somAtual = null;
+        let perguntaAtualIndex = 0;
+        const palavrasCaca = ['ARARA', 'BICO', 'CAVERNA', 'NOTURNO', 'NECTAR', 'INSETO', 'MIGRAR', 'RAPINA', 'POLEN', 'NINHO'];
+        let pontuacaoCacaPalavras = 0;
+        let isSelecting = false;
+        let selection = [];
+        let foundWords = [];
+        const gridSize = 12;
+        const SOM_ACERTO_MEMORIA_URL = 'https://cdn.pixabay.com/audio/2022/03/15/audio_2b28b5c935.mp3';
+        const SOM_ACERTO_CACA_URL = 'https://cdn.pixabay.com/audio/2022/11/21/audio_a7210e122a.mp3';
+        let cartasViradas = [];
+        let paresEncontrados = 0;
+        let bloqueioBoard = false;
 
-    <div id="tela-galeria" class="tela">
-        <h2 class="titulo-tela">Galeria dos Animais Voadores</h2>
-        <p>Clique no nome de um animal para ver sua ficha e ouvir as curiosidades!</p>
-        <div class="galeria-container">
-            <div id="grid-animais"></div>
-            <div id="ficha-display">
-                <div id="ficha-placeholder"><span class="emoji-placeholder">👈</span><h3>Escolha um animal na lista!</h3></div>
-            </div>
-        </div>
-        <button onclick="mostrarTela('tela-caca-palavras')">Próximo Desafio: Caça-Palavras!</button>
-    </div>
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarGridAnimais();
+            iniciarJogoMemoria();
+            gerarCacaPalavras();
+            mostrarTela('tela-inicio');
+        });
 
-    <div id="tela-caca-palavras" class="tela">
-        <h2 class="titulo-tela">Desafio Caça-Palavras!</h2>
-        <p>Encontre as 10 palavras escondidas. Clique na primeira letra e arraste até a última!</p>
-        <div id="caca-palavras-container">
-            <div id="grid-caca-palavras"></div>
-            <div id="lista-palavras-container">
-                <h3>Palavras:</h3>
-                <ul id="lista-palavras"></ul>
-            </div>
-        </div>
-    </div>
+        // --- LÓGICA DE ÁUDIO E NAVEGAÇÃO ---
+        function mostrarTela(idTela) { if (playerAudio && !playerAudio.paused) { playerAudio.pause(); playerAudio.currentTime = 0; somAtual = null; } document.querySelectorAll('.tela').forEach(tela => tela.classList.remove('ativa')); document.getElementById(idTela).classList.add('ativa'); }
+        document.getElementById('btn-comecar').addEventListener('click', () => { nomeAluno = document.getElementById('nome-aluno').value || "Explorador(a)"; document.querySelectorAll('.nome-placeholder').forEach(span => span.textContent = nomeAluno); mostrarTela('tela-galeria'); });
+        function tocarSom(idAnimal) { const isPlayingThisSound = (somAtual === idAnimal && !playerAudio.paused); playerAudio.pause(); if (isPlayingThisSound) { somAtual = null; return; } playerAudio.src = `audios/${idAnimal}.mp3`; const promise = playerAudio.play(); if (promise !== undefined) { promise.then(_ => { somAtual = idAnimal; }).catch(error => { console.error("Erro ao reproduzir áudio:", error); alert(`Não foi possível tocar o áudio. Verifique se o arquivo "${idAnimal}.mp3" existe na pasta 'audios' (sem acento).`); somAtual = null; }); } }
+        function tocarEfeito(tipo) { playerEfeitos.currentTime = 0; playerEfeitos.src = tipo === 'memoria' ? SOM_ACERTO_MEMORIA_URL : SOM_ACERTO_CACA_URL; playerEfeitos.play().catch(e => console.error("Erro no efeito sonoro:", e)); }
 
-    <div id="tela-quiz" class="tela">
-        <h2 class="titulo-tela">Desafio Final! 🧐</h2>
-        <div id="quiz-progresso"></div>
-        <div id="quiz-pergunta-container">
-            <h3 id="quiz-pergunta"></h3>
-            <div id="quiz-opcoes"></div>
-        </div>
-        <div id="quiz-navegacao">
-            <button id="btn-quiz-anterior" onclick="mudarPergunta(-1)">⬅️ Anterior</button>
-            <button id="btn-quiz-proximo" onclick="mudarPergunta(1)">Próximo ➡️</button>
-        </div>
-    </div>
+        // --- LÓGICA DA GALERIA ---
+        function carregarGridAnimais() { const grid = document.getElementById('grid-animais'); grid.innerHTML = ''; animais.forEach(animal => { const botao = document.createElement('button'); botao.className = 'botao-animal'; botao.textContent = animal.nome; botao.onclick = () => mostrarFicha(animal.id); grid.appendChild(botao); }); }
+        function mostrarFicha(idAnimal) { const animal = animais.find(a => a.id === idAnimal); const display = document.getElementById('ficha-display'); document.querySelectorAll('.botao-animal').forEach(b => b.classList.remove('ativo')); const botaoAtivo = Array.from(document.querySelectorAll('.botao-animal')).find(b => b.textContent === animal.nome); if (botaoAtivo) botaoAtivo.classList.add('ativo'); display.className = 'ficha-display'; display.classList.add(animal.tema); display.innerHTML = `<div class="ficha-animal ativa"><div class="ficha-imagem-container"><img src="imagens/${animal.img}" alt="${animal.nome}" class="ficha-imagem"></div><div class="ficha-info"><h3>${animal.nome} <button class="botao-som" onclick="tocarSom('${animal.id}')">🔊 Ouvir</button></h3><div class="info-conteudo"><div class="info-item"><strong>Habitat:</strong> ${animal.habitat}</div><div class="info-item"><strong>Alimentação:</strong> ${animal.alimentacao}</div><div class="info-item"><strong>Hábitos:</strong> ${animal.habitos}</div><div class="info-item curiosidade"><strong>Curiosidade:</strong> ${animal.curiosidade}</div></div></div></div>`; }
+        
+        // --- LÓGICA DO JOGO DA MEMÓRIA ---
+        function iniciarJogoMemoria() { paresEncontrados = 0; cartasViradas = []; bloqueioBoard = false; document.getElementById('mensagem-memoria').classList.add('escondido'); const animaisMemoria = ['arara_azul', 'borboleta', 'morcego_frugivoro', 'tucano', 'coruja']; let cartas = []; animaisMemoria.forEach(id => { const animal = animais.find(a => a.id === id); cartas.push({ tipo: 'imagem', id: id, conteudo: `<img src="imagens/${animal.img}" alt="${animal.nome}">` }); cartas.push({ tipo: 'nome', id: id, conteudo: animal.nome }); }); cartas.sort(() => 0.5 - Math.random()); const board = document.getElementById('memoria-board'); board.innerHTML = ''; cartas.forEach(carta => { const cardElement = document.createElement('div'); cardElement.classList.add('memoria-card'); cardElement.dataset.id = carta.id; cardElement.innerHTML = `<div class="card-inner"><div class="card-frente">${carta.conteudo}</div><div class="card-verso">?</div></div>`; cardElement.addEventListener('click', () => virarCarta(cardElement)); board.appendChild(cardElement); }); }
+        function virarCarta(carta) { if (bloqueioBoard || carta.classList.contains('flipped') || carta.classList.contains('matched')) return; carta.classList.add('flipped'); cartasViradas.push(carta); if (cartasViradas.length === 2) verificarPar(); }
+        function verificarPar() { bloqueioBoard = true; const [carta1, carta2] = cartasViradas; if (carta1.dataset.id === carta2.dataset.id) { paresEncontrados++; carta1.classList.add('matched'); carta2.classList.add('matched'); tocarEfeito('memoria'); cartasViradas = []; bloqueioBoard = false; if (paresEncontrados === 5) { setTimeout(() => document.getElementById('mensagem-memoria').classList.remove('escondido'), 800); } } else { setTimeout(() => { carta1.classList.remove('flipped'); carta2.classList.remove('flipped'); cartasViradas = []; bloqueioBoard = false; }, 1200); } }
 
-    <div id="tela-relatorio" class="tela">
-        <div id="relatorio-conteudo">
-            <h2 class="titulo-tela">Relatório de Desempenho <span id="maos-aplaudindo"></span></h2>
-            <h3><span class="nome-placeholder"></span></h3>
-            <div class="container-nota"><h3 id="nota-final"></h3><div id="confetti-container"></div></div>
-            <div id="pontuacao-detalhada"></div>
-            <div id="resumo-feedback"></div>
-            <div id="respostas-detalhadas"></div>
-        </div>
-        <button id="btn-pdf" onclick="salvarPDF()">Salvar Relatório em PDF</button>
-        <button onclick="window.location.reload()">Jogar Novamente</button>
-    </div>
+        // --- LÓGICA DO CAÇA-PALAVRAS ---
+        function gerarCacaPalavras() { foundWords = []; pontuacaoCacaPalavras = 0; document.querySelectorAll('#lista-palavras li').forEach(li => li.classList.remove('palavra-encontrada', 'cor-0', 'cor-1', 'cor-2', 'cor-3', 'cor-4', 'cor-5', 'cor-6', 'cor-7', 'cor-8', 'cor-9')); let gridArray = Array(gridSize).fill(null).map(() => Array(gridSize).fill('')); palavrasCaca.forEach(palavra => { let placed = false; for (let i = 0; i < 100 && !placed; i++) { const direcao = Math.random() > 0.5 ? 'horizontal' : 'vertical'; const startRow = Math.floor(Math.random() * gridSize); const startCol = Math.floor(Math.random() * gridSize); if (canPlaceWordAt(gridArray, palavra, startRow, startCol, direcao)) { for (let j = 0; j < palavra.length; j++) { if (direcao === 'horizontal') gridArray[startRow][startCol + j] = palavra[j]; else gridArray[startRow + j][startCol] = palavra[j]; } placed = true; } } }); const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; for (let i = 0; i < gridSize; i++) { for (let j = 0; j < gridSize; j++) { if (gridArray[i][j] === '') gridArray[i][j] = alfabeto[Math.floor(Math.random() * alfabeto.length)]; } } renderGrid(gridArray); renderWordList(); }
+        function canPlaceWordAt(grid, word, row, col, direction) { if (direction === 'horizontal') { if (col + word.length > gridSize) return false; for (let i = 0; i < word.length; i++) { if (grid[row][col + i] !== '') return false; } } else { if (row + word.length > gridSize) return false; for (let i = 0; i < word.length; i++) { if (grid[row + i][col] !== '') return false; } } return true; }
+        function renderGrid(gridArray) { const gridElement = document.getElementById('grid-caca-palavras'); gridElement.innerHTML = ''; for (let i = 0; i < gridSize; i++) { for (let j = 0; j < gridSize; j++) { const cell = document.createElement('div'); cell.className = 'grid-cell'; cell.textContent = gridArray[i][j]; cell.dataset.row = i; cell.dataset.col = j; gridElement.appendChild(cell); } } gridElement.addEventListener('mousedown', handleMouseDown); gridElement.addEventListener('mouseover', handleMouseOver); document.addEventListener('mouseup', handleMouseUp); }
+        function renderWordList() { const listElement = document.getElementById('lista-palavras'); listElement.innerHTML = ''; palavrasCaca.forEach(palavra => { const listItem = document.createElement('li'); listItem.textContent = palavra; listItem.id = `palavra-${palavra}`; listElement.appendChild(listItem); }); }
+        function handleMouseDown(e) { if (e.target.classList.contains('grid-cell')) { isSelecting = true; selection = [e.target]; e.target.classList.add('selecionado'); } }
+        function handleMouseOver(e) { if (isSelecting && e.target.classList.contains('grid-cell') && !selection.includes(e.target)) { selection.push(e.target); e.target.classList.add('selecionado'); } }
+        function handleMouseUp() { if (!isSelecting) return; isSelecting = false; let selectedWord = selection.map(cell => cell.textContent).join(''); let selectedWordReversed = selectedWord.split('').reverse().join(''); const correctWord = palavrasCaca.find(p => p === selectedWord || p === selectedWordReversed); if (correctWord && !foundWords.includes(correctWord)) { foundWords.push(correctWord); pontuacaoCacaPalavras++; tocarEfeito('caca'); const palavraIndex = palavrasCaca.findIndex(p => p === correctWord); const classeDeCor = `cor-${palavraIndex}`; const listItem = document.getElementById(`palavra-${correctWord}`); listItem.classList.add('palavra-encontrada'); listItem.classList.add(classeDeCor); selection.forEach(cell => { cell.classList.add('correto'); cell.classList.add(classeDeCor); }); if (foundWords.length === palavrasCaca.length) { setTimeout(mostrarModalCacaPalavras, 500); } } selection.forEach(cell => cell.classList.remove('selecionado')); selection = []; }
+        function mostrarModalCacaPalavras() { document.getElementById('modal-caca-palavras').classList.remove('escondido'); }
+        function fecharModalCacaPalavras() { document.getElementById('modal-caca-palavras').classList.add('escondido'); mostrarTela('tela-quiz'); perguntaAtualIndex = 0; quizPerguntas.forEach(p => p.respostaUsuario = null); mostrarPergunta(); }
 
-    <div id="modal-caca-palavras" class="modal-overlay escondido">
-        <div class="modal-box">
-            <span class="modal-emoji">🏆</span>
-            <h2>Parabéns!</h2>
-            <p>Você encontrou todas as palavras escondidas e ganhou seus primeiros pontos!</p>
-            <button onclick="fecharModalCacaPalavras()">Continuar para o Quiz!</button>
-        </div>
-    </div>
-    <div id="modal-quiz-finalizado" class="modal-overlay escondido">
-        <div class="modal-box">
-            <span class="modal-emoji-quiz">🎉</span>
-            <h2>Missão Cumprida!</h2>
-            <p>Você finalizou todos os desafios, <span class="nome-placeholder"></span>! Você é um verdadeiro Explorador(a) dos Céus!</p>
-            <button onclick="fecharModalQuiz()">Ver meu Relatório Detalhado</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+        // --- LÓGICA DO QUIZ ---
+        function mostrarPergunta() { const perguntaAtual = quizPerguntas[perguntaAtualIndex]; document.getElementById('quiz-progresso').textContent = `Pergunta ${perguntaAtualIndex + 1} de ${quizPerguntas.length}`; document.getElementById('quiz-pergunta').textContent = perguntaAtual.pergunta; const opcoesContainer = document.getElementById('quiz-opcoes'); opcoesContainer.innerHTML = ''; perguntaAtual.opcoes.forEach(opcao => { const label = document.createElement('label'); label.className = 'quiz-opcao'; if (opcao.valor === perguntaAtual.respostaUsuario) label.classList.add('selecionada'); label.innerHTML = `<input type="radio" name="opcao" value="${opcao.valor}" style="display:none;"> ${opcao.texto}`; label.onclick = () => { perguntaAtual.respostaUsuario = opcao.valor; document.querySelectorAll('.quiz-opcao').forEach(l => l.classList.remove('selecionada')); label.classList.add('selecionada'); }; opcoesContainer.appendChild(label); }); atualizarBotoesQuiz(); }
+        function atualizarBotoesQuiz() { document.getElementById('btn-quiz-anterior').disabled = perguntaAtualIndex === 0; const btnProximo = document.getElementById('btn-quiz-proximo'); if (perguntaAtualIndex === quizPerguntas.length - 1) { btnProximo.textContent = 'Finalizar e Ver Resultado'; } else { btnProximo.textContent = 'Próximo ➡️'; } }
+        function mudarPergunta(direcao) { const proximoIndex = perguntaAtualIndex + direcao; if (proximoIndex >= 0 && proximoIndex < quizPerguntas.length) { perguntaAtualIndex = proximoIndex; mostrarPergunta(); } else if (proximoIndex === quizPerguntas.length) { verificarQuizFinal(); } }
+        function verificarQuizFinal() { const respondidas = quizPerguntas.filter(p => p.respostaUsuario !== null).length; if (respondidas < quizPerguntas.length) { return alert("Por favor, responda a todas as 10 questões!"); } quizResultados = quizPerguntas.map(p => ({ acertou: p.respostaUsuario === p.respostaCorreta, explicacao: p.explicacao })); mostrarModalQuiz(); }
+        function mostrarModalQuiz() { document.getElementById('modal-quiz-finalizado').classList.remove('escondido'); }
+        function fecharModalQuiz() { document.getElementById('modal-quiz-finalizado').classList.add('escondido'); mostrarRelatorio(); }
+        
+        // --- LÓGICA DO RELATÓRIO FINAL ---
+        function mostrarRelatorio() {
+            const pontuacaoQuiz = quizResultados.filter(r => r.acertou).length;
+            const notaCacaPalavras = (pontuacaoCacaPalavras / palavrasCaca.length) * 10;
+            const notaQuiz = (pontuacaoQuiz / quizPerguntas.length) * 10;
+            const notaFinal = (notaCacaPalavras * 0.2) + (notaQuiz * 0.8);
+            document.getElementById('nota-final').textContent = `Nota Final: ${notaFinal.toFixed(1)}`;
+            document.getElementById('pontuacao-detalhada').innerHTML = `<p>Pontos Caça-Palavras: <strong>${pontuacaoCacaPalavras} de ${palavrasCaca.length}</strong></p><p>Pontos Quiz: <strong>${pontuacaoQuiz} de ${quizPerguntas.length}</strong></p>`;
+            let feedback = "";
+            if (notaFinal >= 8) { feedback = "<p>EXCELENTE! Você é um verdadeiro especialista nos céus!</p>"; } 
+            else if (notaFinal >= 6) { feedback = "<p>MUITO BEM! Você aprendeu os pontos mais importantes.</p>"; } 
+            else { feedback = "<p>CONTINUE ESTUDANDO! Que tal explorar as fichas mais uma vez?</p>"; }
+            document.getElementById('resumo-feedback').innerHTML = feedback;
+            if (notaFinal >= 8) {
+                document.getElementById('maos-aplaudindo').innerHTML = "👏";
+                document.getElementById('maos-aplaudindo').classList.add('animar');
+                criarConfetes();
+            } else {
+                document.getElementById('maos-aplaudindo').innerHTML = "";
+                document.getElementById('maos-aplaudindo').classList.remove('animar');
+            }
+            const containerDetalhes = document.getElementById('respostas-detalhadas');
+            containerDetalhes.innerHTML = '<h4>Revisão do Quiz:</h4>';
+            quizResultados.forEach((resultado, index) => {
+                const itemDiv = document.createElement('div');
+                if (resultado.acertou) {
+                    itemDiv.className = 'item-resposta correta';
+                    itemDiv.innerHTML = `<p>✅ Questão ${index + 1}: Correto!</p>`;
+                } else {
+                    itemDiv.className = 'item-resposta errada';
+                    itemDiv.innerHTML = `<p>❌ Questão ${index + 1}: Errado!</p><div class="explicacao-erro"><strong>Explicação:</strong> ${resultado.explicacao}</div>`;
+                }
+                containerDetalhes.appendChild(itemDiv);
+            });
+            mostrarTela('tela-relatorio');
+        }
+        function criarConfetes() { const container = document.getElementById('confetti-container'); container.innerHTML = ""; const cores = ['#ffca28', '#f44336', '#4caf50', '#2196f3', '#9c27b0']; for (let i = 0; i < 30; i++) { const confete = document.createElement('div'); confete.className = 'confete'; confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)]; confete.style.setProperty('--x', `${(Math.random() - 0.5) * 400}px`); confete.style.setProperty('--y', `${(Math.random() - 0.5) * 400}px`); confete.style.setProperty('--r', `${Math.random() * 360}deg`); container.appendChild(confete); } }
+        function salvarPDF() { const btnPDF = document.getElementById('btn-pdf'); btnPDF.disabled = true; window.html2canvas(document.getElementById('relatorio-conteudo'), { scale: 2, useCORS: true }).then(canvas => { try { const { jsPDF } = window.jspdf; const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' }); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, pdf.internal.pageSize.getWidth() - 20, 0); pdf.save(`relatorio_${nomeAluno.trim().replace(/\s/g, '_') || 'aluno'}.pdf`); } finally { btnPDF.disabled = false; } }); }
+    </script>
 </body>
 </html>
