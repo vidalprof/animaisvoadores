@@ -1,7 +1,7 @@
 /*
- * VERSÃO FINAL COM ÁUDIO CORRIGIDO - 25 de Setembro de 2025
- * - Corrigido o caminho da pasta de áudio para "audios" (sem acento), que é a melhor prática para a web.
- * - Mantida a lógica de tocar/parar o som e de interromper ao mudar de tela.
+ * VERSÃO FINAL E CORRIGIDA - 25 de Setembro de 2025
+ * - Removido o código duplicado que causava um erro fatal e impedia o script de rodar.
+ * - Lógica de áudio para tocar/parar e para interromper ao mudar de tela está funcional.
  */
 
 // --- BANCO DE DADOS COMPLETO DOS ANIMAIS ---
@@ -22,7 +22,6 @@ const animais = [
     { id: 'gaviao', nome: 'Gavião-carijó', tema: 'tema-aves', img: 'gaviao.png', habitat: 'Áreas urbanas e rurais, parques e campos.', alimentacao: 'Pequenos mamíferos, aves e répteis.', habitos: 'Diurno; frequentemente visto pousado em postes e árvores.', curiosidade: 'É um dos gaviões mais comuns em cidades brasileiras.' },
     { id: 'falcao', nome: 'Falcão-peregrino', tema: 'tema-aves', img: 'falcao.png', habitat: 'Falésias, montanhas e prédios altos nas cidades.', alimentacao: 'Principalmente outras aves, capturadas em voo.', habitos: 'Diurno; famoso por mergulhos muito rápidos para caçar.', curiosidade: 'É um dos animais mais velozes do planeta em voo em mergulho.' }
 ];
-
 const quizPerguntas = [
     { pergunta: '🤔 1. O que o bico enorme do Tucano-toco ajuda a fazer, além de pegar comida?', opcoes: [{ texto: 'Cantar', valor: 'a' }, { texto: 'Regular a temperatura', valor: 'b' }, { texto: 'Dormir', valor: 'c' }], respostaCorreta: 'b', explicacao: 'O bico do tucano, apesar de grande, é leve e ajuda a regular a temperatura do corpo dele.', respostaUsuario: null },
     { pergunta: '🤔 2. Qual animal é considerado um dos mais velozes do planeta em um voo de mergulho?', opcoes: [{ texto: 'Andorinha-das-chaminés', valor: 'a' }, { texto: 'Águia-harpia', valor: 'b' }, { texto: 'Falcão-peregrino', valor: 'c' }], respostaCorreta: 'c', explicacao: 'O Falcão-peregrino é famoso por seus mergulhos em altíssima velocidade para caçar.', respostaUsuario: null },
@@ -100,7 +99,6 @@ function tocarSom(idAnimal) {
         return;
     }
     player.pause();
-    // *** CORREÇÃO APLICADA AQUI: USA "audios" SEM ACENTO ***
     player.src = `audios/${idAnimal}.mp3`;
     const promise = player.play();
     if (promise !== undefined) {
@@ -114,22 +112,207 @@ function tocarSom(idAnimal) {
     }
 }
 
-// ... E o restante de todo o código funcional (caça-palavras, quiz, relatório, etc.) ...
-function gerarCacaPalavras(){ /* ...código idêntico... */ }
-function canPlaceWordAt(grid, word, row, col, direction){ /* ...código idêntico... */ }
-function renderGrid(gridArray){ /* ...código idêntico... */ }
-function renderWordList(){ /* ...código idêntico... */ }
-function handleMouseDown(e){ /* ...código idêntico... */ }
-function handleMouseOver(e){ /* ...código idêntico... */ }
-function handleMouseUp(){ /* ...código idêntico... */ }
-function mostrarModalCacaPalavras(){ /* ...código idêntico... */ }
-function fecharModalCacaPalavras(){ /* ...código idêntico... */ }
-function mostrarPergunta(){ /* ...código idêntico... */ }
-function atualizarBotoesQuiz(){ /* ...código idêntico... */ }
-function mudarPergunta(direcao){ /* ...código idêntico... */ }
-function verificarQuizFinal(){ /* ...código idêntico... */ }
-function mostrarModalQuiz(){ /* ...código idêntico... */ }
-function fecharModalQuiz(){ /* ...código idêntico... */ }
-function mostrarRelatorio(){ /* ...código idêntico... */ }
-function criarConfetes(){ /* ...código idêntico... */ }
-function salvarPDF(){ /* ...código idêntico... */ }
+function gerarCacaPalavras() {
+    let gridArray = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
+    palavrasCaca.forEach(palavra => {
+        let placed = false;
+        for (let i = 0; i < 100 && !placed; i++) {
+            const direcao = Math.random() > 0.5 ? 'horizontal' : 'vertical';
+            const startRow = Math.floor(Math.random() * gridSize);
+            const startCol = Math.floor(Math.random() * gridSize);
+            if (canPlaceWordAt(gridArray, palavra, startRow, startCol, direcao)) {
+                for (let j = 0; j < palavra.length; j++) {
+                    if (direcao === 'horizontal') gridArray[startRow][startCol + j] = palavra[j];
+                    else gridArray[startRow + j][startCol] = palavra[j];
+                }
+                placed = true;
+            }
+        }
+    });
+    const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            if (gridArray[i][j] === '') gridArray[i][j] = alfabeto[Math.floor(Math.random() * alfabeto.length)];
+        }
+    }
+    renderGrid(gridArray);
+    renderWordList();
+}
+
+function canPlaceWordAt(grid, word, row, col, direction) {
+    if (direction === 'horizontal') {
+        if (col + word.length > gridSize) return false;
+        for (let i = 0; i < word.length; i++) {
+            if (grid[row][col + i] !== '') return false;
+        }
+    } else {
+        if (row + word.length > gridSize) return false;
+        for (let i = 0; i < word.length; i++) {
+            if (grid[row + i][col] !== '') return false;
+        }
+    }
+    return true;
+}
+
+function renderGrid(gridArray) {
+    const gridElement = document.getElementById('grid-caca-palavras');
+    gridElement.innerHTML = '';
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.textContent = gridArray[i][j];
+            cell.dataset.row = i;
+            cell.dataset.col = j;
+            gridElement.appendChild(cell);
+        }
+    }
+    gridElement.addEventListener('mousedown', handleMouseDown);
+    gridElement.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseup', handleMouseUp);
+}
+
+function renderWordList() {
+    const listElement = document.getElementById('lista-palavras');
+    listElement.innerHTML = '';
+    palavrasCaca.forEach(palavra => {
+        const listItem = document.createElement('li');
+        listItem.textContent = palavra;
+        listItem.id = `palavra-${palavra}`;
+        listElement.appendChild(listItem);
+    });
+}
+
+function handleMouseDown(e) { if (e.target.classList.contains('grid-cell')) { isSelecting = true; selection = [e.target]; e.target.classList.add('selecionado'); } }
+function handleMouseOver(e) { if (isSelecting && e.target.classList.contains('grid-cell') && !selection.includes(e.target)) { selection.push(e.target); e.target.classList.add('selecionado'); } }
+function handleMouseUp() {
+    if (!isSelecting) return; isSelecting = false;
+    let selectedWord = selection.map(cell => cell.textContent).join('');
+    let selectedWordReversed = selectedWord.split('').reverse().join('');
+    const correctWord = palavrasCaca.find(p => p === selectedWord || p === selectedWordReversed);
+    if (correctWord && !foundWords.includes(correctWord)) {
+        foundWords.push(correctWord); pontuacaoCacaPalavras++;
+        document.getElementById(`palavra-${correctWord}`).classList.add('palavra-encontrada');
+        selection.forEach(cell => cell.classList.add('correto'));
+        if (foundWords.length === palavrasCaca.length) { setTimeout(mostrarModalCacaPalavras, 500); }
+    }
+    selection.forEach(cell => cell.classList.remove('selecionado'));
+    selection = [];
+}
+
+function mostrarModalCacaPalavras() { document.getElementById('modal-caca-palavras').classList.remove('escondido'); }
+function fecharModalCacaPalavras() { document.getElementById('modal-caca-palavras').classList.add('escondido'); mostrarTela('tela-quiz'); mostrarPergunta(); }
+
+function mostrarPergunta() {
+    const perguntaAtual = quizPerguntas[perguntaAtualIndex];
+    document.getElementById('quiz-progresso').textContent = `Pergunta ${perguntaAtualIndex + 1} de ${quizPerguntas.length}`;
+    document.getElementById('quiz-pergunta').textContent = perguntaAtual.pergunta;
+    const opcoesContainer = document.getElementById('quiz-opcoes');
+    opcoesContainer.innerHTML = '';
+    perguntaAtual.opcoes.forEach(opcao => {
+        const label = document.createElement('label');
+        label.className = 'quiz-opcao';
+        if (opcao.valor === perguntaAtual.respostaUsuario) label.classList.add('selecionada');
+        label.innerHTML = `<input type="radio" name="opcao" value="${opcao.valor}" style="display:none;"> ${opcao.texto}`;
+        label.onclick = () => {
+            perguntaAtual.respostaUsuario = opcao.valor;
+            document.querySelectorAll('.quiz-opcao').forEach(l => l.classList.remove('selecionada'));
+            label.classList.add('selecionada');
+        };
+        opcoesContainer.appendChild(label);
+    });
+    atualizarBotoesQuiz();
+}
+
+function atualizarBotoesQuiz() {
+    document.getElementById('btn-quiz-anterior').disabled = perguntaAtualIndex === 0;
+    const btnProximo = document.getElementById('btn-quiz-proximo');
+    if (perguntaAtualIndex === quizPerguntas.length - 1) {
+        btnProximo.textContent = 'Finalizar e Ver Resultado';
+    } else {
+        btnProximo.textContent = 'Próximo ➡️';
+    }
+}
+
+function mudarPergunta(direcao) {
+    const proximoIndex = perguntaAtualIndex + direcao;
+    if (proximoIndex >= 0 && proximoIndex < quizPerguntas.length) {
+        perguntaAtualIndex = proximoIndex;
+        mostrarPergunta();
+    } else if (proximoIndex === quizPerguntas.length) {
+        verificarQuizFinal();
+    }
+}
+
+function verificarQuizFinal() {
+    const respondidas = quizPerguntas.filter(p => p.respostaUsuario !== null).length;
+    if (respondidas < quizPerguntas.length) {
+        return alert("Por favor, responda a todas as 10 questões!");
+    }
+    quizResultados = quizPerguntas.map(p => ({ acertou: p.respostaUsuario === p.respostaCorreta, explicacao: p.explicacao }));
+    mostrarModalQuiz();
+}
+
+function mostrarModalQuiz() { document.getElementById('modal-quiz-finalizado').classList.remove('escondido'); }
+function fecharModalQuiz() { document.getElementById('modal-quiz-finalizado').classList.add('escondido'); mostrarRelatorio(); }
+
+function mostrarRelatorio() {
+    const pontuacaoQuiz = quizResultados.filter(r => r.acertou).length;
+    const notaCacaPalavras = (pontuacaoCacaPalavras / palavrasCaca.length) * 10;
+    const notaQuiz = (pontuacaoQuiz / quizPerguntas.length) * 10;
+    const notaFinal = (notaCacaPalavras * 0.2) + (notaQuiz * 0.8);
+    document.getElementById('nota-final').textContent = `Nota Final: ${notaFinal.toFixed(1)}`;
+    document.getElementById('pontuacao-detalhada').innerHTML = `<p>Pontos Caça-Palavras: <strong>${pontuacaoCacaPalavras} de ${palavrasCaca.length}</strong></p><p>Pontos Quiz: <strong>${pontuacaoQuiz} de ${quizPerguntas.length}</strong></p>`;
+    if (notaFinal >= 8) {
+        document.getElementById('maos-aplaudindo').innerHTML = "👏";
+        document.getElementById('maos-aplaudindo').classList.add('animar');
+        criarConfetes();
+    } else {
+        document.getElementById('maos-aplaudindo').innerHTML = "";
+        document.getElementById('maos-aplaudindo').classList.remove('animar');
+    }
+    const containerDetalhes = document.getElementById('respostas-detalhadas');
+    containerDetalhes.innerHTML = '<h4>Revisão do Quiz:</h4>';
+    quizResultados.forEach((resultado, index) => {
+        const itemDiv = document.createElement('div');
+        if (resultado.acertou) {
+            itemDiv.className = 'item-resposta correta';
+            itemDiv.innerHTML = `<p>✅ Questão ${index + 1}: Correto!</p>`;
+        } else {
+            itemDiv.className = 'item-resposta errada';
+            itemDiv.innerHTML = `<p>❌ Questão ${index + 1}: Errado!</p><div class="explicacao-erro"><strong>Explicação:</strong> ${resultado.explicacao}</div>`;
+        }
+        containerDetalhes.appendChild(itemDiv);
+    });
+    mostrarTela('tela-relatorio');
+}
+
+function criarConfetes() {
+    const container = document.getElementById('confetti-container');
+    container.innerHTML = "";
+    const cores = ['#ffca28', '#f44336', '#4caf50', '#2196f3', '#9c27b0'];
+    for (let i = 0; i < 30; i++) {
+        const confete = document.createElement('div');
+        confete.className = 'confete';
+        confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+        confete.style.setProperty('--x', `${(Math.random() - 0.5) * 400}px`);
+        confete.style.setProperty('--y', `${(Math.random() - 0.5) * 400}px`);
+        confete.style.setProperty('--r', `${Math.random() * 360}deg`);
+        container.appendChild(confete);
+    }
+}
+
+function salvarPDF() {
+    const btnPDF = document.getElementById('btn-pdf');
+    btnPDF.disabled = true;
+    window.html2canvas(document.getElementById('relatorio-conteudo'), { scale: 2, useCORS: true }).then(canvas => {
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, pdf.internal.pageSize.getWidth() - 20, 0);
+            pdf.save(`relatorio_${nomeAluno.trim().replace(/\s/g, '_') || 'aluno'}.pdf`);
+        } finally {
+            btnPDF.disabled = false;
+        }
+    });
+}
