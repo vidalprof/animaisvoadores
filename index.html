@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploradores dos Céus 2.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <audio id="player-audio"></audio>
+
+    <div id="tela-inicio" class="tela ativa">
+        <img src="imagens/inicial_animais.png" alt="Animais voadores" class="img-inicio">
+        <h1 class="titulo-principal">Exploradores dos Céus</h1>
+        <p>Olá! Prepare-se para uma nova aventura com os animais voadores.</p>
+        <label for="nome-aluno">Digite seu nome para começar:</label>
+        <input type="text" id="nome-aluno" placeholder="Seu nome aqui">
+        <button id="btn-comecar">Começar a Exploração</button>
+    </div>
+
+    <div id="tela-galeria" class="tela">
+        <h2 class="titulo-tela">Galeria dos Animais Voadores</h2>
+        <p>Clique no nome de um animal para ver sua ficha e ouvir as curiosidades!</p>
+        <div class="galeria-container">
+            <div id="grid-animais"></div>
+            <div id="ficha-display">
+                <div id="ficha-placeholder"><span class="emoji-placeholder">👈</span><h3>Escolha um animal na lista!</h3></div>
+            </div>
+        </div>
+        <button onclick="mostrarTela('tela-caca-palavras')">Próximo Desafio: Caça-Palavras!</button>
+    </div>
+
+    <div id="tela-caca-palavras" class="tela">
+        <h2 class="titulo-tela">Desafio Caça-Palavras!</h2>
+        <p>Encontre as 10 palavras escondidas. Clique na primeira letra e arraste até a última!</p>
+        <div id="caca-palavras-container">
+            <div id="grid-caca-palavras"></div>
+            <div id="lista-palavras-container">
+                <h3>Palavras:</h3>
+                <ul id="lista-palavras"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="tela-quiz" class="tela">
+        <h2 class="titulo-tela">Desafio Final! 🧐</h2>
+        <div id="quiz-progresso"></div>
+        <div id="quiz-pergunta-container">
+            <h3 id="quiz-pergunta"></h3>
+            <div id="quiz-opcoes"></div>
+        </div>
+        <div id="quiz-navegacao">
+            <button id="btn-quiz-anterior" onclick="mudarPergunta(-1)">⬅️ Anterior</button>
+            <button id="btn-quiz-proximo" onclick="mudarPergunta(1)">Próximo ➡️</button>
+        </div>
+    </div>
+
+    <div id="tela-relatorio" class="tela">
+        <div id="relatorio-conteudo">
+            <h2 class="titulo-tela">Relatório de Desempenho <span id="maos-aplaudindo"></span></h2>
+            <h3><span class="nome-placeholder"></span></h3>
+            <div class="container-nota"><h3 id="nota-final"></h3><div id="confetti-container"></div></div>
+            <div id="pontuacao-detalhada"></div>
+            <div id="resumo-feedback"></div>
+            <div id="respostas-detalhadas"></div>
+        </div>
+        <button id="btn-pdf" onclick="salvarPDF()">Salvar Relatório em PDF</button>
+        <button onclick="window.location.reload()">Jogar Novamente</button>
+    </div>
+
+    <div id="modal-caca-palavras" class="modal-overlay escondido">
+        <div class="modal-box">
+            <span class="modal-emoji">🏆</span>
+            <h2>Parabéns!</h2>
+            <p>Você encontrou todas as palavras escondidas e ganhou seus primeiros pontos!</p>
+            <button onclick="fecharModalCacaPalavras()">Continuar para o Quiz!</button>
+        </div>
+    </div>
+    <div id="modal-quiz-finalizado" class="modal-overlay escondido">
+        <div class="modal-box">
+            <span class="modal-emoji-quiz">🎉</span>
+            <h2>Missão Cumprida!</h2>
+            <p>Você finalizou todos os desafios, <span class="nome-placeholder"></span>! Você é um verdadeiro Explorador(a) dos Céus!</p>
+            <button onclick="fecharModalQuiz()">Ver meu Relatório Detalhado</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
