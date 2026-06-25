@@ -370,6 +370,7 @@
         let selection = [];
         let foundWords = [];
         const gridSize = 12;
+        const VELOCIDADE_LEITURA = 0.95;
         const SOM_ACERTO_MEMORIA_URL = 'https://cdn.pixabay.com/audio/2022/03/15/audio_2b28b5c935.mp3';
         const SOM_ACERTO_CACA_URL = 'https://cdn.pixabay.com/audio/2022/11/21/audio_a7210e122a.mp3';
         let cartasViradas = [];
@@ -444,7 +445,7 @@
             }
             const fala = new SpeechSynthesisUtterance(texto);
             fala.lang = 'pt-BR';
-            fala.rate = 0.95;
+            fala.rate = VELOCIDADE_LEITURA;
             fala.onend = () => { leituraAtualId = null; };
             fala.onerror = () => { leituraAtualId = null; };
             synth.speak(fala);
