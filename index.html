@@ -431,7 +431,7 @@
 
         function ouvirConteudo(idConteudo) {
             if (!('speechSynthesis' in window)) {
-                alert('Seu navegador não oferece suporte para leitura em voz alta nesta atividade.');
+                alert('Seu navegador não oferece suporte para leitura em voz alta nesta atividade. Use Chrome, Firefox ou Edge para ouvir as explicações.');
                 return;
             }
             const conteudo = conteudos.find(item => item.id === idConteudo);
@@ -689,7 +689,7 @@
 
         function verificarQuizFinal() {
             const respondidas = quizPerguntas.filter(pergunta => pergunta.respostaUsuario !== null).length;
-            if (respondidas < quizPerguntas.length) return alert('Por favor, responda às 10 questões antes de finalizar!');
+            if (respondidas < quizPerguntas.length) return alert(`Por favor, responda às ${quizPerguntas.length} questões antes de finalizar!`);
             quizResultados = quizPerguntas.map(pergunta => ({ acertou: pergunta.respostaUsuario === pergunta.respostaCorreta, explicacao: pergunta.explicacao }));
             mostrarModalQuiz();
         }
